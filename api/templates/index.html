@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>СППР для диагностики кожных заболеваний</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 960px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f7f8fb;
+            color: #222;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        h3 {
+            margin-top: 24px;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input[type="number"],
+        input[type="file"],
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        .checkbox-group {
+            margin-top: 14px;
+            padding: 12px;
+            background: #fafafa;
+            border: 1px solid #e7e7e7;
+            border-radius: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.2);
+        }
+
+        button {
+            margin-top: 20px;
+            background: #2f6fed;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #1f57c7;
+        }
+
+        .result-block {
+            margin-top: 18px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #e7e7e7;
+        }
+
+        .recommendation {
+            background: #eef4ff;
+            border-left: 4px solid #2f6fed;
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .error-box {
+            background: #fff3f3;
+            border-left: 4px solid #d9534f;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .meta {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        ol {
+            padding-left: 22px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #555;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Система поддержки принятия решений</h1>
+    <h2>Предварительная оценка кожных заболеваний</h2>
+
+    {% if error_message %}
+    <div class="error-box">
+        <b>Ошибка:</b> {{ error_message }}
+    </div>
+    {% endif %}
+
+    {% if quality_issues %}
+    <div class="error-box">
+        <b>Проблемы с изображением:</b>
+        <ul>
+            {% for issue in quality_issues %}
+                <li>{{ issue }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <label>Загрузите изображение (JPEG, PNG) — необязательно</label>
+            <input type="file" name="file" accept=".jpg,.jpeg,.png">
+
+            <p class="hint">
+                Можно выполнить анализ только по фото, только по симптомам или использовать оба варианта.
+            </p>
+
+            <div class="checkbox-group">
+                <label>Основные симптомы</label>
+
+                <label class="checkbox-item"><input type="checkbox" name="itching"> Есть зуд</label>
+                <label class="checkbox-item"><input type="checkbox" name="pain"> Есть боль</label>
+                <label class="checkbox-item"><input type="checkbox" name="bleeding"> Есть кровоточивость</label>
+                <label class="checkbox-item"><input type="checkbox" name="peeling"> Есть шелушение</label>
+                <label class="checkbox-item"><input type="checkbox" name="oozing"> Есть мокнутие</label>
+                <label class="checkbox-item"><input type="checkbox" name="pus"> Есть гной / пустулы</label>
+                <label class="checkbox-item"><input type="checkbox" name="clear_border"> Есть чёткий контур</label>
+                <label class="checkbox-item"><input type="checkbox" name="redness"> Есть покраснение</label>
+                <label class="checkbox-item"><input type="checkbox" name="swelling"> Есть отёк</label>
+                <label class="checkbox-item"><input type="checkbox" name="burning"> Есть жжение</label>
+                <label class="checkbox-item"><input type="checkbox" name="crusting"> Есть корочки</label>
+                <label class="checkbox-item"><input type="checkbox" name="vesicles"> Есть пузырьки / везикулы</label>
+                <label class="checkbox-item"><input type="checkbox" name="papules"> Есть папулы / мелкие узелки</label>
+                <label class="checkbox-item"><input type="checkbox" name="plaques"> Есть бляшки</label>
+                <label class="checkbox-item"><input type="checkbox" name="ulceration"> Есть язвочки / изъязвление</label>
+                <label class="checkbox-item"><input type="checkbox" name="comedones"> Есть комедоны</label>
+            </div>
+
+            <label>Какой примерный процент поражения кожи?</label>
+            <input type="number" name="affected_area" min="0" max="100" step="1">
+
+            <label>Если очаг локальный — примерный диаметр поражения (мм)</label>
+            <input type="number" name="diameter_mm" min="0" step="0.1">
+
+            <label>Как давно появилось поражение?</label>
+            <select name="duration">
+                <option value="">Не указано</option>
+                <option value="lt_1_week">До 1 недели</option>
+                <option value="1_4_weeks">1–4 недели</option>
+                <option value="1_6_months">1–6 месяцев</option>
+                <option value="gt_6_months">Более 6 месяцев</option>
+            </select>
+
+            <label>Локализация поражения</label>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="face"> Лицо</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="scalp"> Кожа головы</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="hair"> Волосяной покров</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="trunk"> Туловище</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="arms"> Руки</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="legs"> Ноги</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="folds"> Складки / сгибы</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="feet"> Стопы</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="nails"> Ногти</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="hands"> Кисти</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="mouth"> Рот / слизистая</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="genital"> Генитальная область</label>
+                <label class="checkbox-item"><input type="checkbox" name="localization" value="other"> Другое</label>
+            </div>
+
+            <label>Изменения очага</label>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" name="evolution" value="growing"> Увеличивается</label>
+                <label class="checkbox-item"><input type="checkbox" name="evolution" value="color_change"> Меняет цвет</label>
+                <label class="checkbox-item"><input type="checkbox" name="evolution" value="shape_change"> Меняет форму</label>
+            </div>
+            <p class="hint">Если изменений нет, ничего не отмечайте.</p>
+
+            <div class="checkbox-group">
+                <label>Дополнительные признаки</label>
+
+                <label class="checkbox-item"><input type="checkbox" name="central_clearing"> Просветление в центре очага</label>
+                <label class="checkbox-item"><input type="checkbox" name="ring_shape"> Кольцевидная форма</label>
+                <label class="checkbox-item"><input type="checkbox" name="hair_loss"> Выпадение волос</label>
+                <label class="checkbox-item"><input type="checkbox" name="nail_thickening"> Утолщение ногтя</label>
+                <label class="checkbox-item"><input type="checkbox" name="nail_discoloration"> Изменение цвета ногтя</label>
+                <label class="checkbox-item"><input type="checkbox" name="sun_exposed_area"> Поражение на открытом солнцу участке</label>
+                <label class="checkbox-item"><input type="checkbox" name="multiple_lesions"> Несколько очагов поражения</label>
+            </div>
+
+            <label class="checkbox-item">
+                <input type="checkbox" name="show_all_image_probs" {% if show_all_image_probs %}checked{% endif %}>
+                Показать вероятности по всем классам изображения
+            </label>
+
+            <button type="submit">Выполнить анализ</button>
+
+            <p class="hint">
+                Система не заменяет врача и предназначена только для предварительной оценки.
+            </p>
+        </form>
+    </div>
+
+    {% if image_results or symptom_results or hybrid_results %}
+    <div class="card">
+        <h2>Результаты анализа</h2>
+
+        <div class="meta">
+            {% if filename %}
+                <p><b>Файл:</b> {{ filename }}</p>
+            {% endif %}
+
+            {% if analysis_mode == "image_only" %}
+                <p><b>Режим анализа:</b> только по изображению</p>
+            {% elif analysis_mode == "symptoms_only" %}
+                <p><b>Режим анализа:</b> только по симптомам</p>
+            {% elif analysis_mode == "hybrid" %}
+                <p><b>Режим анализа:</b> гибридный (изображение + симптомы)</p>
+            {% endif %}
+
+            {% if image_model %}
+                <p><b>Модель изображения:</b> {{ image_model }}</p>
+            {% endif %}
+        </div>
+
+        {% if image_results %}
+        <div class="result-block">
+            <h3>Анализ по изображению</h3>
+            <ol>
+                {% for r in image_results %}
+                    <li><b>{{ r.label }}</b> — {{ (r.probability * 100) | round(2) }}%</li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        {% if symptom_results %}
+        <div class="result-block">
+            <h3>Анализ по симптомам</h3>
+            <ol>
+                {% for r in symptom_results %}
+                    <li><b>{{ r.label }}</b> — {{ (r.probability * 100) | round(2) }}%</li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        {% if hybrid_results %}
+        <div class="result-block">
+            <h3>Гибридный итоговый анализ</h3>
+            <ol>
+                {% for r in hybrid_results %}
+                    <li><b>{{ r.label }}</b> — {{ (r.probability * 100) | round(2) }}%</li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        {% if recommendation %}
+        <div class="recommendation">
+            <b>Рекомендация:</b><br>
+            {{ recommendation }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</body>
+</html>
